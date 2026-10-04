@@ -17,6 +17,13 @@
       },
       "url": "https://package.openupm.com"
     },
+    "com.google.external-dependency-manager": {
+      "version": "https://github.com/googlesamples/unity-jar-resolver.git?path=upm#v1.2.190",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "020980ab8f389c00ef0913c6f8f5c6a7311bf093"
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.10",
       "depth": 0,
@@ -230,6 +237,23 @@
         "com.unity.modules.jsonserialize": "1.0.0"
       },
       "url": "https://packages.unity.com"
+    },
+    "com.yandex.mobileads": {
+      "version": "https://github.com/yandexmobile/yandex-ads-unity-plugin.git?path=mobileads-sdk#8.5.0",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {
+        "com.google.external-dependency-manager": "1.2.178",
+        "com.yandex.mobileads.appmetrica.adrevenue.adapter": "1.0.0"
+      },
+      "hash": "0152297c1b495220ef2e9a32d94cea321d46f1b0"
+    },
+    "com.yandex.mobileads.appmetrica.adrevenue.adapter": {
+      "version": "https://github.com/appmetrica/appmetrica-adrevenue-adapter-unity-plugin.git#36a1b16a6798296ca220e682f6c542fb8c561300",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "36a1b16a6798296ca220e682f6c542fb8c561300"
     },
     "com.unity.modules.accessibility": {
       "version": "1.0.0",

@@ -143,8 +143,9 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 0.1.0
-  preloadedAssets: []
+  bundleVersion: 0.3.0
+  preloadedAssets:
+  - {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -166,7 +167,7 @@ PlayerSettings:
   androidMaxAspectRatio: 2.4
   androidMinAspectRatio: 1
   applicationIdentifier:
-    Android: com.UnityTechnologies.com.unity.template.urpblank
+    Android: com.tinyfactory.prototype
     Standalone: com.Unity-Technologies.com.unity.template.urp-blank
     iPhone: com.Unity-Technologies.com.unity.template.urp-blank
   buildNumber:
@@ -175,7 +176,7 @@ PlayerSettings:
     iPhone: 0
     tvOS: 0
   overrideDefaultApplicationIdentifier: 1
-  AndroidBundleVersionCode: 1
+  AndroidBundleVersionCode: 6
   AndroidMinSdkVersion: 25
   AndroidTargetSdkVersion: 0
   AndroidPreferredInstallLocation: 1
@@ -524,7 +525,10 @@ PlayerSettings:
       m_Height: 720
       m_Kind: 1
       m_SubKind: 
-  m_BuildTargetBatching: []
+  m_BuildTargetBatching:
+  - m_BuildTarget: Android
+    m_StaticBatching: 1
+    m_DynamicBatching: 0
   m_BuildTargetShaderSettings: []
   m_BuildTargetGraphicsJobs: []
   m_BuildTargetGraphicsJobMode: []
@@ -534,7 +538,7 @@ PlayerSettings:
     m_Automatic: 1
   - m_BuildTarget: AndroidPlayer
     m_APIs: 150000000b000000
-    m_Automatic: 0
+    m_Automatic: 1
   m_BuildTargetVRSettings: []
   m_DefaultShaderChunkSizeInMB: 16
   m_DefaultShaderChunkCount: 0
@@ -826,17 +830,24 @@ PlayerSettings:
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
   scriptingDefineSymbols:
-    Android: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    LinuxHeadlessSimulation: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    Nintendo Switch: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    PS4: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    PS5: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    Standalone: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    WebGL: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    Windows Store Apps: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    XboxOne: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    iPhone: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
-    tvOS: YandexGamesPlatform_yg;PLUGIN_YG_2;TMP_YG2;NJSON_YG2
+    Android: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    EmbeddedLinux: DOTWEEN
+    GameCoreScarlett: DOTWEEN
+    GameCoreXboxOne: DOTWEEN
+    Kepler: DOTWEEN
+    LinuxHeadlessSimulation: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    Nintendo Switch: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    Nintendo Switch 2: DOTWEEN
+    PS4: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    PS5: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    QNX: DOTWEEN
+    Standalone: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    VisionOS: DOTWEEN
+    WebGL: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    Windows Store Apps: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    XboxOne: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    iPhone: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
+    tvOS: PLUGIN_YG_2;TMP_YG2;NJSON_YG2;Metrica_yg;YandexMobileAdsPlatform_yg;InterstitialAdv_yg;RewardedAdv_yg;DOTWEEN
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

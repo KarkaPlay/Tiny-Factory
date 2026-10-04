@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b63f220e6757421c92ea0699fa52e1b, type: 3}
+  m_Name: FactoryBalanceConfig
+  m_EditorClassIdentifier: Assembly-CSharp::TinyFactory.FactoryBalanceConfig
+  bufferCapacity: 8
+  manualBatch: 1
+  automationIntervalSeconds: 12
+  dryerSeconds: 3
+  dryerSecondsAtSpeedLevelOne: 2
+  packagerSeconds: 2
+  speedLevelOneCost: 36
+  saleValue: 4
+  valueCap: 1000000000000
