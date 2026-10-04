@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tiny Factory — UI & Visual"
+  short_description: "Мобильный интерфейс и визуальный feedback фабрики"
+  default_prompt: "Используй $tf-ui-visual для задачи Tiny Factory в пределах текущего MVP."

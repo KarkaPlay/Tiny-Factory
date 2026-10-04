@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tiny Factory — QA & Release"
+  short_description: "Проверка сценариев и готовности Android-билда"
+  default_prompt: "Используй $tf-qa-release для задачи Tiny Factory в пределах текущего MVP."

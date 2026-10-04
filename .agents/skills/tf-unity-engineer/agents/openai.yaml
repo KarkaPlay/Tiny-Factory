@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tiny Factory — Unity Engineer"
+  short_description: "Реализация Unity через MCP и интеграции PluginYG2"
+  default_prompt: "Используй $tf-unity-engineer для задачи Tiny Factory в пределах текущего MVP."

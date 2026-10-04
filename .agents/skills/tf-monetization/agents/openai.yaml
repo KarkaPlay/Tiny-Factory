@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tiny Factory — Monetization"
+  short_description: "Рекламные награды и события аналитики Tiny Factory"
+  default_prompt: "Используй $tf-monetization для задачи Tiny Factory в пределах текущего MVP."

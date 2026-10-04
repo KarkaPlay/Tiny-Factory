@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tiny Factory — Producer"
+  short_description: "Управление задачами и границами MVP Tiny Factory"
+  default_prompt: "Используй $tf-producer для задачи Tiny Factory в пределах текущего MVP."

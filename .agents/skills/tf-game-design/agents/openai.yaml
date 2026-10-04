@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tiny Factory — Game Design"
+  short_description: "Core loop, прогрессия и баланс Tiny Factory"
+  default_prompt: "Используй $tf-game-design для задачи Tiny Factory в пределах текущего MVP."
