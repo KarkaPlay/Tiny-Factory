@@ -9,8 +9,8 @@
 - Handoff содержит результат, решения, файлы, evidence, риски и следующий шаг; Producer актуализировал backlog/CURRENT_STATE и при необходимости decisions.
 
 ## Финальный Android / portfolio build
-- Clean install → onboarding → производство → продажа → upgrade → unlock → restart/restore работает на названном реальном Android-устройстве. Update поверх предыдущего build сохраняет прогресс; некорректное сохранение восстанавливает безопасное состояние без crash.
-- Offline запуск позволяет играть/сохранять. Background/resume не вызывает дублирование продаж, наград и отправки однократных событий. Offline earnings не заявлены.
+- Clean install → onboarding → производство → collect/load → заказ/выплата → upgrade → unlock → restart/restore работает на названном реальном Android-устройстве. Update поверх предыдущего build сохраняет прогресс; некорректное сохранение восстанавливает безопасное состояние без crash.
+- Offline запуск позволяет играть/сохранять. Background/resume не вызывает дублирование продаж, наград и отправки однократных событий. Для исторической 0.4 offline earnings не заявлены; в будущей 0.6+ bounded offline production проверяется по META_SAVE_CONTRACT: stock/input/output/WIP и checkpoint, без auto transfer/reward.
 - UI читаем, не обрезан на 16:9/19.5:9/20:9, учитывает safe area; touch targets проверены на устройстве. Mute применяется после restart.
 - Rewarded: success выдаёт один bonus; cancel/no-fill/network/error/timeout/duplicate callback проверены. Interstitial ограничен caps и спокойным placement, исключает onboarding. Реальный adapter подтверждён на target; fake не считается production-интеграцией.
 - Analytics: согласованные schema/events, reward/upgrade/unlock не дублируются; реальная доставка подтверждена evidence. Ошибка analytics не блокирует gameplay. Если provider неподдерживаемый, milestone blocked до решения пользователя.
@@ -20,3 +20,12 @@
 - README объясняет игру, управление, запуск/сборку и архитектуру; есть короткое видео и screenshots, источники/лицензии использованных assets перечислены. Демонстрация не выдаёт fake SDK/неизмеренные показатели за production.
 
 QA создаёт конкретные cases/evidence по задаче или release в момент работы, а не заранее пустые отчёты. Публикация в магазин — отдельная пользовательская задача.
+
+## Дополнение для принятой меты0.5 и будущего offline-этапа
+
+- [META_GAMEPLAY_SPEC](META_GAMEPLAY_SPEC.md), [META_UI_SPEC](META_UI_SPEC.md), [META_SAVE_CONTRACT](META_SAVE_CONTRACT.md) задают критерии активного прототипа0.5 и отдельно будущего offline-этапа; evidence реализации фиксируется в отчётах проверок.
+- Проверены атомарные сбор/загрузка/сдача, конкуренция за общий промежуточный продукт, недоступный заказ, нулевой кошелёк и полное хранилище. Награда и перемещения не дублируются; предложения и активный заказ сохраняются.
+- Update0.4→schema2 сопровождается уведомлением, переносом денег и компенсацией; исходный v1 сохранён, повторного refund нет. Corrupt/future-schema recovery и cold-WIP правила соответствуют новой модели.
+- Offline-этап проверяет только загруженное сырьё, cap/часы/background+restart/границы таймеров; повторное возвращение не удваивает продукцию. Прототип0.5 явно обозначен как active-only.
+- Playtest фиксирует понимание цели, выбора распределения и следующего шага. Две сессии не объявляются доказанным ежедневным retention. После финальной главы видна конечная цель, новый grind не навязан.
+- Старые reward x2/события auto-sale не считаются принятыми для меты; M07 обновляет policy/schema до интеграции.

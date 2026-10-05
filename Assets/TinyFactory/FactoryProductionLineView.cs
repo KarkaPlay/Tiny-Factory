@@ -15,7 +15,7 @@ namespace TinyFactory
             public int slot = -1;
         }
 
-        private const int VisualItemLimit = 18;
+        private const int VisualItemLimit = 27;
 
         [Header("Runtime and item prefab")]
         [SerializeField] private FactoryRuntime runtime;
@@ -27,18 +27,25 @@ namespace TinyFactory
         [Header("Editable line anchors")]
         [SerializeField] private Transform[] sourceQueueSlots = new Transform[8];
         [SerializeField] private Transform dryerWipAnchor;
+        [SerializeField] private Transform[] rollerQueueSlots = new Transform[8];
+        [SerializeField] private Transform rollerWipAnchor;
         [SerializeField] private Transform[] packagerQueueSlots = new Transform[8];
         [SerializeField] private Transform packagerWipAnchor;
+        [Header("World unlock presentation")]
+        [SerializeField] private GameObject rollerLockedPlaceholder;
 
         [Header("Processing feedback")]
         [SerializeField] private RectTransform dryerProgressFill;
         [SerializeField] private Image dryerProgressImage;
+        [SerializeField] private RectTransform rollerProgressFill;
+        [SerializeField] private Image rollerProgressImage;
         [SerializeField] private RectTransform packagerProgressFill;
         [SerializeField] private Image packagerProgressImage;
         [SerializeField, Min(0.05f)] private float transportDuration = 0.24f;
 
         private readonly List<VisualItem> visualItems = new List<VisualItem>(VisualItemLimit);
         private Tween dryerBarTween;
+        private Tween rollerBarTween;
         private Tween packagerBarTween;
         private Tween harvestPulse;
         private Vector3 harvestBaseScale;
@@ -51,6 +58,10 @@ namespace TinyFactory
         private int lastDryerDuration = -1;
         private int lastPackagerRemaining = -1;
         private int lastPackagerDuration = -1;
+        private int rollerDurationAtStart;
+        private int lastRollerRemaining = -1;
+        private int lastRollerDuration = -1;
+        private bool lastRollerActive;
         private bool lastDryerActive;
         private bool lastPackagerActive;
         private bool tweeningEnabled;
@@ -67,7 +78,8 @@ namespace TinyFactory
                 return;
             }
             if (sourceQueueSlots == null || sourceQueueSlots.Length < runtime.Capacity ||
-                packagerQueueSlots == null || packagerQueueSlots.Length < runtime.Capacity)
+                rollerQueueSlots == null || rollerQueueSlots.Length < runtime.Capacity ||
+                packagerQueueSlots == null || packagerQueueSlots.Length < runtime.Capacity || rollerWipAnchor == null)
             {
                 Debug.LogError("Production line queue anchors must cover the configured buffer capacity.", this);
                 enabled = false;
@@ -109,6 +121,7 @@ namespace TinyFactory
         private void OnDestroy()
         {
             Kill(ref dryerBarTween);
+            Kill(ref rollerBarTween);
             Kill(ref packagerBarTween);
             Kill(ref harvestPulse);
             for (int i = visualItems.Count - 1; i >= 0; i--)
@@ -196,10 +209,22 @@ namespace TinyFactory
                 if (extra.view != null) Destroy(extra.view.gameObject);
             }
 
+            // The locked marker occupies the future roller footprint. The HUD owns
+            // activation of the actual station; this view owns the locked state.
+            if (rollerLockedPlaceholder != null)
+                rollerLockedPlaceholder.SetActive(!runtime.RollerUnlocked);
+
             int index = 0;
+            // Visual items are kept in FIFO order from downstream to upstream.
+            // Existing final-stage items therefore retain their final anchors when
+            // the roller unlock inserts a new stage into the route.
             if (runtime.PackagerHasWip && index < visualItems.Count)
-                SetItemStage(visualItems[index++], 3, 0);
+                SetItemStage(visualItems[index++], 5, 0);
             for (int i = 0; i < runtime.PackagerInput && index < visualItems.Count; i++)
+                SetItemStage(visualItems[index++], 4, i);
+            if (runtime.RollerHasWip && index < visualItems.Count)
+                SetItemStage(visualItems[index++], 3, 0);
+            for (int i = 0; i < runtime.RollerInput && index < visualItems.Count; i++)
                 SetItemStage(visualItems[index++], 2, i);
             if (runtime.DryerHasWip && index < visualItems.Count)
                 SetItemStage(visualItems[index++], 1, 0);
@@ -214,13 +239,16 @@ namespace TinyFactory
             item.stage = stage;
             item.slot = slot;
             if (stage == 1 && previousStage != 1) dryerDurationAtStart = Mathf.Max(1, runtime.DryerRemaining);
-            if (stage == 3 && previousStage != 3) packagerDurationAtStart = Mathf.Max(1, runtime.PackagerRemaining);
+            if (stage == 3 && previousStage != 3) rollerDurationAtStart = Mathf.Max(1, runtime.RollerRemaining);
+            if (stage == 5 && previousStage != 5) packagerDurationAtStart = Mathf.Max(1, runtime.PackagerRemaining);
             if (item.view == null) return;
 
             Transform destination;
             if (stage == 0) destination = sourceQueueSlots[slot];
             else if (stage == 1) destination = dryerWipAnchor;
-            else if (stage == 2) destination = packagerQueueSlots[slot];
+            else if (stage == 2) destination = rollerQueueSlots[slot];
+            else if (stage == 3) destination = rollerWipAnchor;
+            else if (stage == 4) destination = packagerQueueSlots[slot];
             else destination = packagerWipAnchor;
             if (destination == null)
             {
@@ -228,8 +256,8 @@ namespace TinyFactory
                 return;
             }
 
-            item.view.SetPackaged(stage >= 2);
-            item.view.name = stage >= 2 ? "Пакетик · очередь продажи" : "Лист · очередь";
+            item.view.SetPackaged(stage >= 4);
+            item.view.name = stage >= 4 ? "Пакетик · очередь продажи" : "Лист · очередь";
             Kill(ref item.movement);
             if (previousStage < 0)
             {
@@ -243,9 +271,14 @@ namespace TinyFactory
 
         private void RefreshProgress()
         {
+            if (rollerProgressFill != null && rollerProgressFill.parent != null)
+                rollerProgressFill.parent.gameObject.SetActive(runtime.RollerUnlocked);
             UpdateProgress(dryerProgressFill, dryerProgressImage, runtime.DryerHasWip,
                 runtime.DryerRemaining, dryerDurationAtStart, ref dryerBarTween,
                 ref lastDryerActive, ref lastDryerRemaining, ref lastDryerDuration);
+            UpdateProgress(rollerProgressFill, rollerProgressImage, runtime.RollerHasWip,
+                runtime.RollerRemaining, rollerDurationAtStart, ref rollerBarTween,
+                ref lastRollerActive, ref lastRollerRemaining, ref lastRollerDuration);
             UpdateProgress(packagerProgressFill, packagerProgressImage, runtime.PackagerHasWip,
                 runtime.PackagerRemaining, packagerDurationAtStart, ref packagerBarTween,
                 ref lastPackagerActive, ref lastPackagerRemaining, ref lastPackagerDuration);
@@ -286,6 +319,7 @@ namespace TinyFactory
                 SetTween(visualItems[i].movement, enabledState);
             SetTween(harvestPulse, enabledState);
             SetTween(dryerBarTween, enabledState);
+            SetTween(rollerBarTween, enabledState);
             SetTween(packagerBarTween, enabledState);
         }
 

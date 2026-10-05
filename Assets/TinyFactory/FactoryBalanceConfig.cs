@@ -21,7 +21,22 @@ namespace TinyFactory
         [Min(1)] public long sealerTierSaleValue = 6;
         [Min(1)] public long valueCap = 1000000000000L;
 
-        public int UpgradeCost(int currentLevel) => currentLevel < 0 || currentLevel >= upgradeCosts.Length ? 0 : upgradeCosts[currentLevel];
+        public int UpgradeCost(int currentLevel) => upgradeCosts == null || upgradeCosts.Length != 3 ||
+            currentLevel < 0 || currentLevel >= upgradeCosts.Length || upgradeCosts[currentLevel] <= 0
+            ? -1 : upgradeCosts[currentLevel];
+
+        public bool IsValid()
+        {
+            return bufferCapacity > 0 && baseManualBatch > 0 && baseAutomationIntervalSeconds > 0 &&
+                upgradeCosts != null && upgradeCosts.Length == 3 && upgradeCosts[0] > 0 && upgradeCosts[1] > 0 && upgradeCosts[2] > 0 &&
+                HasFour(dryerSecondsBySpeedLevel) && HasFour(rollerSecondsBySpeedLevel) && HasFour(finalSecondsBySpeedLevel) &&
+                HasFour(manualBatchByProductivityLevel) && HasFour(automationIntervalByLevel) &&
+                rollerUnlockSales > 0 && sealerUnlockSales > rollerUnlockSales && saleValue > 0 &&
+                rollerTierSaleValue >= saleValue && sealerTierSaleValue >= rollerTierSaleValue && valueCap > 0;
+        }
+
+        private static bool HasFour(int[] values) => values != null && values.Length == 4 &&
+            values[0] > 0 && values[1] > 0 && values[2] > 0 && values[3] > 0;
         public int DryerDuration(int level) => At(dryerSecondsBySpeedLevel, level, 3);
         public int RollerDuration(int level) => At(rollerSecondsBySpeedLevel, level, 2);
         public int FinalDuration(int level) => At(finalSecondsBySpeedLevel, level, 2);

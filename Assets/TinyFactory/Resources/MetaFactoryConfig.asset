@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6d02798457740d4b1190bdb4cde0831, type: 3}
+  m_Name: MetaFactoryConfig
+  m_EditorClassIdentifier: Assembly-CSharp::TinyFactory.MetaFactoryConfig
+  warehouseTotalCapacity: 40
+  warehouseProductCapacity: 20
+  localCapacity: 8
+  walletCapacity: 1000000000000
+  gardenSeconds: 15
+  gardenSecondsByLevel:
+  - 15
+  - 12
+  - 9
+  freshLeafPerBatch: 2
+  dryerSecondsByLevel:
+  - 8
+  - 6
+  - 4
+  packerSecondsByLevel:
+  - 6
+  - 5
+  - 4
+  freshSaveCoins: 80
+  freshStartQuantity: 4
+  onboardingFreshLeafQuantity: 4
+  rewardPerUnitByProduct:
+  - 2
+  - 5
+  - 6
+  pilotDryTeaQuantity: 2
+  pilotTeaPacketQuantity: 2
+  dryerBuildCost: 40
+  packerBuildCost: 70
+  gardenUpgradeCosts:
+  - 30
+  - 65
+  dryerUpgradeCosts:
+  - 45
+  - 90
+  packerUpgradeCosts:
+  - 55
+  - 110
+  dryerUnlockPackerAtProduced: 5

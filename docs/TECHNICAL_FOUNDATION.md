@@ -1,5 +1,7 @@
 # M02 — техническая основа
 
+> Этот документ фиксирует историческую M02 foundation. Local JSON/backup и provider boundaries сохраняются. Новые input/output/inventory/order/offline данные и migration контракт описываются в [META_GAMEPLAY_SPEC](META_GAMEPLAY_SPEC.md) и плане [ROADMAP](ROADMAP.md); старые cold-WIP discard/no-offline правила относятся к0.4.0. Новая реализация не выполнена.
+
 Статус: повторная техническая проверка после импорта рекламных wrappers пройдена в Unity 6000.3.9f1 через Unity MCP, 2026-10-05. Android APK с текущей композицией собран (code 4), но установка/запуск на физическом устройстве отложены по D12. Gameplay, ad display/callbacks и Android gameplay analytics остаются вне M02.
 
 ## Минимальные технические решения

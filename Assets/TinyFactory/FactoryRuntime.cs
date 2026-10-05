@@ -97,9 +97,9 @@ namespace TinyFactory
 
         private void Awake()
         {
-            if (config == null)
+            if (config == null || !config.IsValid())
             {
-                Debug.LogError("FactoryRuntime requires its serialized FactoryBalanceConfig reference.", this);
+                Debug.LogError("FactoryRuntime requires a valid serialized FactoryBalanceConfig.", this);
                 enabled = false;
                 return;
             }
@@ -129,9 +129,10 @@ namespace TinyFactory
                 return false;
             }
             sourceBuffer += batch;
+            bool onboardingChanged = !harvestOnboardingComplete;
             harvestOnboardingComplete = true;
             ItemAccepted?.Invoke(false);
-            SaveProgress();
+            if (onboardingChanged) SaveProgress();
             Changed?.Invoke();
             return true;
         }
@@ -155,7 +156,8 @@ namespace TinyFactory
         };
 
         public bool CanAffordNext(UpgradeBranch branch) =>
-            Level(branch) < 3 && coins >= config.UpgradeCost(Level(branch));
+            config != null && Level(branch) < 3 && config.UpgradeCost(Level(branch)) > 0 &&
+            coins >= config.UpgradeCost(Level(branch));
 
         public void SetMuted(bool value)
         {
@@ -167,7 +169,9 @@ namespace TinyFactory
 
         public void SetForeground(bool active) { foreground = active; }
 
-        public void Tick()
+        public void Tick() => Tick(false);
+
+        public void Tick(bool manualHarvestAtBoundary)
         {
             if (config == null || !foreground) return;
             ticks++;
@@ -232,6 +236,8 @@ namespace TinyFactory
                 dryerRemaining = config.DryerDuration(speedLevel);
             }
 
+            if (manualHarvestAtBoundary) RequestHarvest();
+
             secondsUntilAuto--;
             if (secondsUntilAuto <= 0)
             {
@@ -250,7 +256,7 @@ namespace TinyFactory
                 purchaseQueued = false;
                 int level = Level(queuedBranch);
                 int cost = config.UpgradeCost(level);
-                if (level < 3 && coins >= cost)
+                if (level < 3 && cost > 0 && coins >= cost)
                 {
                     coins -= cost;
                     SetLevel(queuedBranch, level + 1);
@@ -280,61 +286,131 @@ namespace TinyFactory
         {
             string primary = savePath;
             string backup = savePath + ".bak";
-            if (!File.Exists(primary)) { SaveStatus = string.Empty; return; }
-            try
+            if (!File.Exists(primary) && !File.Exists(backup)) return;
+            if (File.Exists(primary))
             {
-                SaveData data = ReadAndValidate(primary, allowFuture: true);
-                if (data == null) return;
-                Apply(data);
-                return;
+                try
+                {
+                    SaveData data = ReadAndValidate(primary);
+                    Apply(data);
+                    return;
+                }
+                catch (NewerSchemaException)
+                {
+                    string archive = UniqueArchivePath(primary, ".schema-unknown-", ".json");
+                    try { File.Copy(primary, archive, false); }
+                    catch (Exception e) { Debug.LogError("Could not archive newer save; original remains untouched: " + e.Message, this); }
+                    savePath = Path.Combine(Path.GetDirectoryName(primary), FreshFileName);
+                    bool restoredFresh = LoadFreshSaveSlot();
+                    SaveStatus = restoredFresh
+                        ? "Сохранение новой версии сохранено отдельно; восстановлен свежий слот"
+                        : "Сохранение новой версии сохранено отдельно; начата новая игра";
+                    SaveNotice?.Invoke(SaveStatus);
+                    return;
+                }
+                catch (Exception e) { Debug.LogWarning("Primary save is invalid; trying backup: " + e.Message, this); }
             }
+            SaveData backupData = null;
+            try { backupData = ReadAndValidate(backup); }
             catch (NewerSchemaException)
             {
-                string archive = primary + ".schema-unknown-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss") + ".json";
-                try { File.Copy(primary, archive, false); }
-                catch (Exception e) { Debug.LogError("Could not archive newer save; original remains untouched: " + e.Message, this); }
-                savePath = Path.Combine(Application.persistentDataPath, FreshFileName);
-                if (File.Exists(savePath))
-                {
-                    try { Apply(ReadAndValidate(savePath, allowFuture: false)); }
-                    catch (Exception e) { Debug.LogWarning("Fresh save slot is invalid; starting fresh: " + e.Message, this); }
-                }
-                SaveStatus = "Сохранение новой версии сохранено отдельно; начата новая игра";
+                string archive = UniqueArchivePath(backup, ".schema-unknown-", ".json");
+                try { File.Copy(backup, archive, false); }
+                catch (Exception e) { Debug.LogError("Could not archive newer backup; original remains untouched: " + e.Message, this); }
+                savePath = Path.Combine(Path.GetDirectoryName(primary), FreshFileName);
+                bool restoredFresh = LoadFreshSaveSlot();
+                SaveStatus = restoredFresh
+                    ? "Резервная копия новой версии сохранена отдельно; восстановлен свежий слот"
+                    : "Резервная копия новой версии сохранена отдельно; начата новая игра";
                 SaveNotice?.Invoke(SaveStatus);
-                return;
-            }
-            catch (Exception e)
-            {
-                Debug.LogWarning("Primary save is invalid; trying backup: " + e.Message, this);
-            }
-            try
-            {
-                SaveData backupData = ReadAndValidate(backup, allowFuture: false);
-                Apply(backupData);
-                string corruptArchive = primary + ".corrupt-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
-                File.Move(primary, corruptArchive);
-                SaveStatus = "Прогресс восстановлен из резервной копии";
-                SaveNotice?.Invoke(SaveStatus);
-                SaveProgress();
                 return;
             }
             catch (Exception e) { Debug.LogWarning("Save backup is invalid; starting fresh: " + e.Message, this); }
-            try { if (File.Exists(primary)) File.Move(primary, primary + ".corrupt-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss")); } catch { }
-            try { if (File.Exists(backup)) File.Move(backup, backup + ".corrupt-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss")); } catch { }
+            if (backupData != null)
+            {
+                bool primaryArchived = !File.Exists(primary);
+                if (File.Exists(primary))
+                {
+                    try { File.Move(primary, UniqueArchivePath(primary, ".corrupt-", string.Empty)); primaryArchived = true; }
+                    catch (Exception e) { Debug.LogError("Could not archive invalid primary; backup will be used without overwriting it: " + e.Message, this); }
+                }
+                Apply(backupData);
+                SaveStatus = "Прогресс восстановлен из резервной копии";
+                SaveNotice?.Invoke(SaveStatus);
+                if (primaryArchived) SaveProgress();
+                return;
+            }
+            try
+            {
+                if (File.Exists(primary)) File.Move(primary, UniqueArchivePath(primary, ".corrupt-", string.Empty));
+                if (File.Exists(backup)) File.Move(backup, UniqueArchivePath(backup, ".corrupt-", string.Empty));
+            }
+            catch (Exception e) { Debug.LogWarning("Could not archive invalid save files: " + e.Message, this); }
             SaveStatus = "Сохранение повреждено; начата новая игра";
             SaveNotice?.Invoke(SaveStatus);
         }
 
-        private SaveData ReadAndValidate(string path, bool allowFuture)
+        private bool LoadFreshSaveSlot()
+        {
+            string primary = savePath;
+            string backup = savePath + ".bak";
+            if (File.Exists(primary))
+            {
+                try { Apply(ReadAndValidate(primary)); return true; }
+                catch (NewerSchemaException)
+                {
+                    try { File.Copy(primary, UniqueArchivePath(primary, ".schema-unknown-", ".json"), false); }
+                    catch (Exception e) { Debug.LogError("Could not archive unsupported fresh save: " + e.Message, this); }
+                    savePath = Path.Combine(Path.GetDirectoryName(primary), FreshFileName + ".alternate.json");
+                    return false;
+                }
+                catch (Exception e) { Debug.LogWarning("Fresh save primary could not be loaded: " + e.Message, this); }
+            }
+            SaveData savedBackup = null;
+            if (File.Exists(backup))
+            {
+                try { savedBackup = ReadAndValidate(backup); }
+                catch (NewerSchemaException)
+                {
+                    try { File.Copy(backup, UniqueArchivePath(backup, ".schema-unknown-", ".json"), false); }
+                    catch (Exception e) { Debug.LogError("Could not archive unsupported fresh backup: " + e.Message, this); }
+                    savePath = Path.Combine(Path.GetDirectoryName(primary), FreshFileName + ".alternate.json");
+                    return false;
+                }
+                catch (Exception e) { Debug.LogWarning("Fresh save backup could not be loaded: " + e.Message, this); }
+            }
+            if (savedBackup != null)
+            {
+                bool primaryArchived = !File.Exists(primary);
+                if (File.Exists(primary))
+                {
+                    try { File.Move(primary, UniqueArchivePath(primary, ".corrupt-", string.Empty)); primaryArchived = true; }
+                    catch (Exception e) { Debug.LogError("Could not archive invalid fresh primary; backup will be used without overwriting it: " + e.Message, this); }
+                }
+                Apply(savedBackup);
+                if (primaryArchived) SaveProgress();
+                return true;
+            }
+            try
+            {
+                if (File.Exists(primary)) File.Move(primary, UniqueArchivePath(primary, ".corrupt-", string.Empty));
+                if (File.Exists(backup)) File.Move(backup, UniqueArchivePath(backup, ".corrupt-", string.Empty));
+            }
+            catch (Exception e) { Debug.LogWarning("Could not archive invalid fresh slot: " + e.Message, this); }
+            return false;
+        }
+
+        private SaveData ReadAndValidate(string path)
         {
             string json = File.ReadAllText(path);
+            if (!HasJsonField(json, "schemaVersion"))
+                throw new InvalidDataException("Save schema field is missing.");
             SaveData data = JsonUtility.FromJson<SaveData>(json);
             if (data == null || data.schemaVersion <= 0) throw new InvalidDataException("Missing or invalid save schema.");
             if (data.schemaVersion > SaveSchemaVersion)
-            {
-                if (allowFuture) throw new NewerSchemaException();
-                throw new InvalidDataException("Backup uses a newer unsupported schema.");
-            }
+                throw new NewerSchemaException();
+            if (!HasRequiredSaveFields(json))
+                throw new InvalidDataException("Save is missing one or more required permanent fields.");
             if (data.schemaVersion != SaveSchemaVersion || data.coins < 0 || data.coins > ValueCap ||
                 data.lifetimeSold < 0 || data.lifetimeSold > ValueCap ||
                 data.speedLevel < 0 || data.speedLevel > 3 || data.productivityLevel < 0 || data.productivityLevel > 3 ||
@@ -343,6 +419,82 @@ namespace TinyFactory
                 throw new InvalidDataException("Save values failed validation.");
             return data;
         }
+
+        private static bool HasRequiredSaveFields(string json)
+        {
+            string[] fields =
+            {
+                "schemaVersion", "coins", "lifetimeSold", "speedLevel", "productivityLevel", "automationLevel",
+                "rollerUnlocked", "sealerUnlocked", "harvestOnboardingComplete", "firstSaleOnboardingComplete",
+                "firstPurchaseOnboardingComplete", "muted"
+            };
+            for (int i = 0; i < fields.Length; i++)
+                if (!HasJsonField(json, fields[i])) return false;
+            return true;
+        }
+
+        private static bool HasJsonField(string json, string field)
+        {
+            if (string.IsNullOrEmpty(json)) return false;
+            int cursor = 0;
+            SkipWhitespace(json, ref cursor);
+            if (cursor >= json.Length || json[cursor++] != '{') return false;
+            while (cursor < json.Length)
+            {
+                SkipWhitespace(json, ref cursor);
+                if (cursor >= json.Length || json[cursor] == '}') return false;
+                if (json[cursor] == ',') { cursor++; continue; }
+                if (json[cursor++] != '"') return false;
+                int start = cursor;
+                while (cursor < json.Length && json[cursor] != '"')
+                {
+                    if (json[cursor] == '\\' && cursor + 1 < json.Length) cursor++;
+                    cursor++;
+                }
+                if (cursor >= json.Length) return false;
+                string key = json.Substring(start, cursor - start);
+                cursor++;
+                SkipWhitespace(json, ref cursor);
+                if (cursor >= json.Length || json[cursor++] != ':') return false;
+                if (string.Equals(key, field, StringComparison.Ordinal)) return true;
+                SkipJsonValue(json, ref cursor);
+            }
+            return false;
+        }
+
+        private static void SkipWhitespace(string json, ref int cursor)
+        {
+            while (cursor < json.Length && char.IsWhiteSpace(json[cursor])) cursor++;
+        }
+
+        private static void SkipJsonValue(string json, ref int cursor)
+        {
+            int depth = 0;
+            bool inString = false;
+            bool escaped = false;
+            while (cursor < json.Length)
+            {
+                char value = json[cursor];
+                if (inString)
+                {
+                    if (escaped) escaped = false;
+                    else if (value == '\\') escaped = true;
+                    else if (value == '"') inString = false;
+                }
+                else if (value == '"') inString = true;
+                else if (value == '{' || value == '[') depth++;
+                else if (value == '}' || value == ']')
+                {
+                    if (depth == 0) return;
+                    depth--;
+                }
+                else if (value == ',' && depth == 0) return;
+                cursor++;
+            }
+        }
+
+        private static string UniqueArchivePath(string path, string marker, string extension) =>
+            path + marker + DateTime.UtcNow.ToString("yyyyMMddHHmmssfff") + "-" + Guid.NewGuid().ToString("N") + extension;
 
         private void Apply(SaveData data)
         {
@@ -382,20 +534,19 @@ namespace TinyFactory
             try
             {
                 File.WriteAllText(temp, JsonUtility.ToJson(data));
-                SaveData verified = ReadAndValidate(temp, allowFuture: false);
-                if (verified.coins != data.coins || verified.lifetimeSold != data.lifetimeSold)
+                SaveData verified = ReadAndValidate(temp);
+                if (!Equivalent(verified, data))
                     throw new InvalidDataException("Temporary save readback differs from source.");
                 if (File.Exists(savePath))
                 {
-                    SaveData old = ReadAndValidate(savePath, allowFuture: false);
+                    SaveData old = ReadAndValidate(savePath);
                     File.Copy(savePath, backup, true);
-                    SaveData backupCheck = ReadAndValidate(backup, allowFuture: false);
-                    if (backupCheck.coins != old.coins || backupCheck.lifetimeSold != old.lifetimeSold)
+                    SaveData backupCheck = ReadAndValidate(backup);
+                    if (!Equivalent(backupCheck, old))
                         throw new InvalidDataException("Backup verification failed.");
                     File.Replace(temp, savePath, null);
                 }
                 else File.Move(temp, savePath);
-                SaveStatus = string.Empty;
             }
             catch (Exception e)
             {
@@ -403,6 +554,15 @@ namespace TinyFactory
                 try { if (File.Exists(temp)) File.Delete(temp); } catch { }
             }
         }
+
+        private static bool Equivalent(SaveData a, SaveData b) =>
+            a.schemaVersion == b.schemaVersion && a.coins == b.coins && a.lifetimeSold == b.lifetimeSold &&
+            a.speedLevel == b.speedLevel && a.productivityLevel == b.productivityLevel &&
+            a.automationLevel == b.automationLevel && a.rollerUnlocked == b.rollerUnlocked &&
+            a.sealerUnlocked == b.sealerUnlocked &&
+            a.harvestOnboardingComplete == b.harvestOnboardingComplete &&
+            a.firstSaleOnboardingComplete == b.firstSaleOnboardingComplete &&
+            a.firstPurchaseOnboardingComplete == b.firstPurchaseOnboardingComplete && a.muted == b.muted;
 
         private static long SaturatingAdd(long current, long amount, long cap)
         {

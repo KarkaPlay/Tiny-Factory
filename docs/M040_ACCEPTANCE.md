@@ -41,6 +41,14 @@ Production-запрос пользователя: 2026-10-05. Исходное �
 
 ## Статус evidence
 
-Game Designer завершил read-only сверку принятой спецификации и baseline 0.3.3: неоднозначностей в числах/порядке правил не обнаружено. QA подготовил negative cases; runtime checks ещё не выполнены. Unity Engineer проверяет MCP перед реализацией. Этот документ фиксирует критерии, а не завершение версии.
+**Принято 2026-10-05 для Editor/build scope.** Game Designer подтвердил правила/баланс, UI — captured-state layout, QA — runtime/save evidence и финальные +4/+6 HUD fixes. Общий bounded harness дал PASS: active t300 sold184/coins563/all L3, passive sold24/coins105. Первоначальный неверно ограниченный цикл теста исправлен; после пользовательского перезапуска Unity проверки завершены. Сцена сохранена/reopened, persistent listeners count1, validation0; финальная сборка включает исправления batch/route hints.
+
+Unity MCP job `build-5c45e8f29d` succeeded in 56.819734 s with 0 errors / 1 warning. Final artifact: `Builds/TinyFactory-0.4.0.apk`, **40,430,233 bytes**, SHA-256 `b9973088128f46578ff387f3b390c7d6e4d965842961508b7ca46bfe5c3f360d`. APK manifest inspection confirms version `0.4.0`, code `10`, package `com.tinyfactory.prototype`, minSDK 25 / targetSDK 36, and only `arm64-v8a` native libraries. Unity settings confirm IL2CPP. Reported build size 741.13 MB is not the APK file size.
+
+Post-build MCP: Play off, compiling/updating false, Console errors 0; SampleScene validation 0 issues / 0 missing scripts / 0 broken prefabs. Pre-build saved scene was clean, with coins/sold/levels/WIP zero, no validation hosts, and exactly one roller and one sealer root.
+
+The sole warning is `Pipeline: No RuntimePipelineConfig asset found (Project Settings > Pipeline > Runtime). Pipeline will be disabled in Player builds.` It is the existing optional Pipeline configuration warning; no URP failure is inferred from it.
+
+Физический Android и форматы19.5:9/20:9 не проверены. Save interruption fixture проверяет отказ до записи temp, а не process kill при replace; Android filesystem atomicity остаётся открытой. Подробности — [M040_QA](M040_QA.md) и [BUILD_NOTES](BUILD_NOTES.md).
 
 По D12 установка/update, hardware touch, реальный background/resume и performance на Android остаются manual pending. Editor/build evidence не закрывает физический device DoD.

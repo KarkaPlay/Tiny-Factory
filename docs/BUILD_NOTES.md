@@ -1,4 +1,22 @@
-# M02 — заметки по сборке
+# Заметки по сборке
+
+## M051 — 0.5.1 / code 12 (2026-10-06)
+
+- Unity MCP job `build-d5e36bb17d`: success, 79.0 s, 0 errors / 1 warning. APK: [TinyFactory-0.5.1.apk](../Builds/Android/TinyFactory-0.5.1.apk), **40,506,481 bytes**; SHA-256 `9b82885f8a9fb9b58715f4b7a0be61ff7f8329a514c7a7b7050665b96df02071`. Unity reported 743.18 MB is not the APK file size.
+- Producer independently inspected the APK: `com.tinyfactory.prototype`, version `0.5.1`, code `12`, minSDK 25 / targetSDK 36; only `arm64-v8a`, `libil2cpp.so` present, ZIP CRC PASS. APK Signature v2 PASS; Android Debug certificate SHA-256 `7763eae5a11cfd879282e8c940eea3d9212cb72b8b46e13d200164d81994b63a`, matching 0.4.0/0.5.0. Baseline APK sizes/hashes unchanged.
+- Unity 6000.3.9f1; Engineer settings readback: IL2CPP, ARM64, customKeystore=false, SampleScene. Post-build MCP: Edit Mode, not compiling, clean SampleScene/rootCount10, validation 0 issues/missing scripts/broken prefabs, Console errors0. Sole build warning is the existing `No RuntimePipelineConfig asset found ... Pipeline will be disabled in Player builds`; other messages are MCP transport diagnostics. Editor fixture reset and temporary runtime duration discarded; source/serialized flight duration 0.62 s.
+- Changes: building-local one-unit loading and all-fitting collection, snap/nearest selection, cosmetic production/transfer motion. Save schema2, recipes/orders and v1 migration remain compatible; offline production is excluded. Targeted QA results and visual limits: [M051_QA](M051_QA.md), [M051_UI_SPEC](M051_UI_SPEC.md), [M051_ENGINEER_CHECKS](M051_ENGINEER_CHECKS.md), [M051_ACCEPTANCE](M051_ACCEPTANCE.md).
+- Physical install/update, touch/safe area/portrait formats, Android lifecycle/filesystem and performance remain manual. A valid single token image proves presence; an ordered visual motion pair/video has not yet been verified. Packer-specific final capture is unverified; a stale image named Packer actually shows Dryer and is excluded.
+
+## M04–M05 — финальная 0.4.0 (2026-10-05)
+
+- Unity MCP job `build-5c45e8f29d` succeeded in 56.819734 s with 0 errors / 1 warning. Final artifact: `Builds/TinyFactory-0.4.0.apk`, **40,430,233 bytes**, SHA-256 `b9973088128f46578ff387f3b390c7d6e4d965842961508b7ca46bfe5c3f360d`. APK manifest inspection confirms version `0.4.0`, code `10`, package `com.tinyfactory.prototype`, minSDK 25 / targetSDK 36, and only `arm64-v8a` native libraries. Unity settings confirm IL2CPP. Reported build size 741.13 MB is not the APK file size.
+- APK: [TinyFactory-0.4.0.apk](../Builds/TinyFactory-0.4.0.apk). Build is non-development; enabled scene is `Assets/Scenes/SampleScene.unity`, Unity6000.3.9f1. Producer completed the build in this chat after Engineer usage limit, with user approval.
+- Post-build MCP: Play off, compiling/updating false, Console errors 0; SampleScene validation 0 issues / 0 missing scripts / 0 broken prefabs. Pre-build saved scene was clean, with coins/sold/levels/WIP zero, no validation hosts, and exactly one roller and one sealer root.
+- The sole warning is `Pipeline: No RuntimePipelineConfig asset found (Project Settings > Pipeline > Runtime). Pipeline will be disabled in Player builds.` It is the existing optional Pipeline configuration warning; no URP failure is inferred from it.
+- M040 overall harness PASS and independent design/UI/QA reviews recorded in [M040_QA](M040_QA.md). Final batch/route regression: L3 queue4/CTA+4/feedback+4, sold0/15/40 hints+4/+5/+6. Final build includes these fixes.
+- First candidate `build-796ade3857` (74.47s,0 errors/1 warning,42,189,508 bytes,SHA256 `5c69c9c1f09e5c0a07719954b21eda7d60b09597448640b72fd5b6f03c1a3651`) preceded the focused HUD fixes and was superseded at the same output path. It is not the release artifact.
+- No install/run on physical Android. Device D12,19.5:9/20:9 captures, process-kill during save replacement and Android filesystem atomicity are unverified. PackedAssets inspection is not claimed for this build.
 
 ## M03-R03 — authoring refactor 0.3.3 (2026-10-05)
 
@@ -71,3 +89,16 @@
 - Earlier M02 smoke attempt had created empty performance-test JSON resources; they were removed through Unity MCP because they were unrelated. Screenshots remain under `Assets/Screenshots/` as Unity MCP evidence. User-imported PluginYG2 YMA and Metrica module files were preserved.
 - No physical Android install, startup, performance measurement, background/resume, ads, reward callback or analytics event delivery was run. Metrica PluginYG2 module `v1.02` contains WebGL-guarded implementation, not an Android gameplay analytics adapter. Its presence and the separate AppMetrica AdRevenue dependency do not close M09.
 - Future manual device pass should verify cold launch, foreground/background recovery, safe-area/readability once HUD exists, and Android logs. M07/M08 separately need platform runtime/ad wrapper module selection, test-unit flows, cancellation/error behavior, and exactly-once reward boundary. M09 needs an Android gameplay analytics provider/capability decision and privacy-safe event validation.
+
+
+## 0.5.0 — active META prototype / Editor-build PASS
+
+- Unity MCP job `build-d9abc9d8a7`: **success**, Android,0 errors/1 warning. Duration88.16s. Post-build: Edit Mode, SampleScene saved/clean roots9, validation0, Console errors0. [M050_ENGINEER_CHECKS](M050_ENGINEER_CHECKS.md).
+- APK: [TinyFactory-0.5.0.apk](../Builds/Android/TinyFactory-0.5.0.apk), **40,491,069 bytes**; SHA-256 `1c1df75aa26accbc71901379b930c3576b0a351ae33578afd63177a29c5fe2b2`. Producer independently verified ZIP CRC (no bad member), nativeABI only `arm64-v8a`, `libil2cpp.so` present.
+- Manifest: package `com.tinyfactory.prototype`, versionName0.5.0/versionCode11, minSDK25/targetSDK36, UnityPlayerGameActivity. Unity6000.3.9f1, IL2CPP/ARM64, sole enabledscene `Assets/Scenes/SampleScene.unity`.
+- `apksigner verify` PASS using APK signaturev2. Android Debug cert SHA-256 `7763eae5a11cfd879282e8c940eea3d9212cb72b8b46e13d200164d81994b63a` совпадает0.4.0: package/version/signing совместимы для update; actualinstallation/migration наAndroid ещё не запускались. Engineer `zipalign -c -v 4` PASS. Это internal test APK.
+- Единственное existingwarning: `Pipeline: No RuntimePipelineConfig asset found; Pipeline will be disabled in Player builds`. Это optionalPipeline configuration; build succeeded, hardware rendering этим не подтверждено. MCP bridge retries не равныC# errors. Reported uncompressed build size не равен размеруAPK.
+- Pre-build: Play stopped, isolated M050 fixture reset, scene saved/clean roots9, validate0 missing scripts/broken prefabs, Console only bridge diagnostics. Post-build: Edit Mode, scene saved/clean roots9, validation0, Console errors0; existing Pipeline warning/bridge diagnostics only.
+- Core QA и authored-button routes PASS; representative UI review PASS. Safe migration уровней1/2/3, ThreeL3 иwalletcap notice и receipt/no-repeat covered; v1 untouched. [M050_ACCEPTANCE](M050_ACCEPTANCE.md), [M050_QA](M050_QA.md), [M050_UI_REVIEW](M050_UI_REVIEW.md), [M050_IMPLEMENTATION](M050_IMPLEMENTATION.md).
+- Старый `Builds/TinyFactory-0.4.0.apk` сохранён; Producer hash unchanged `b9973088128f46578ff387f3b390c7d6e4d965842961508b7ca46bfe5c3f360d`.
+- Physical install/update/touch/safearea/48dp/background/process-kill/Androidfilesystem/FPS-memory/newcomer tests пользователь выполнит отдельно. Actual19.5:9/20:9 не подтверждены, полныйUI/price/tapmatrix не заявлен. Offline production/realads/analytics/cloud и0.6+ исключены.
