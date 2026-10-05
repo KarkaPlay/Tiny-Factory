@@ -1,5 +1,28 @@
 # M02 — заметки по сборке
 
+## M03-R03 — authoring refactor 0.3.3 (2026-10-05)
+
+- Unity MCP Android job `build-80e2f02fda`: **success**, 133.294579 s, 0 errors / 1 warning, reported uncompressed size 740.64 MB. Unity `6000.3.9f1`, version `0.3.3`, Android bundle version code `9`, bundle ID `com.tinyfactory.prototype`; enabled scene `Assets/Scenes/SampleScene.unity`; ARM64 read back from `PlayerSettings.Android.targetArchitectures`.
+- Артефакт [`TinyFactory-0.3.3-android.apk`](../Builds/TinyFactory-0.3.3-android.apk): `40,406,317` bytes; SHA-256 `986f6634a9dd7e4d1efc4f83845ad32df8d200336d24dec4aef15de98c1f3011`.
+- Scene validation before build: 0 issues / 0 missing scripts / 0 broken prefabs. Pre-build Console error/warning query returned no Unity diagnostics. After build, the Unity MCP Editor disconnected (`instance_count=0`), so warning detail and post-build Console/scene state were unavailable. `BuildReport.packedAssets` was not verified; the artifact must not be described as proving material/shader/font inclusion.
+- Persistent Button UnityEvents and embedded InputSystem UI references survived scene save/reopen. Synthetic Play lifecycle smoke confirmed 2 accepted-button calls → 2 runtime/visual items, disable/tick/re-enable reconciliation, one HUD and line view, and one Harvest listener. Startup Play GameView captures at 540×960 (9:16), 432×936 (19.5:9), and 405×900 (20:9) are linked with the authoring guide in [M033_IMPLEMENTATION](M033_IMPLEMENTATION.md).
+- APK is not installed or run on an Android device. Device rendering and input remain pending; the project’s 0.3.2 hotfix included an explicit serialized Resources material and URP/Lit shader, but this 0.3.3 build’s PackedAssets list could not be read after the Editor connection dropped.
+
+## M03-R02 — Android pink-rendering hotfix 0.3.2 (2026-10-05)
+
+- User-reported failure: v0.3.1/code7 on Realme RMX3834 / Android 15 rendered all 3D objects pink while UI remained normal. No device log or screenshot was available, so the on-device cause is not proven. The confirmed source issue was implicit `CreatePrimitive` material/shader dependency; hotfix adds `FactoryWorldMaterial` under Resources and assigns its URP/Lit shader via shared material to each runtime world primitive. Details and the device retest request are in [M032_IMPLEMENTATION](M032_IMPLEMENTATION.md).
+- Unity MCP Android job `build-8eb5270fb4`: **success**, 81.39 s, 0 errors / 2 warnings, reported uncompressed size 716.08 MB. Unity `6000.3.9f1`, version `0.3.2`, Android bundle version code `8`, bundle ID `com.tinyfactory.prototype`; build target Android.
+- Артефакт [`TinyFactory-v0.3.2-code8.apk`](../Builds/Android/TinyFactory-v0.3.2-code8.apk): `38,998,713` bytes; SHA-256 `7e2b8b2a638255d039b09a657be8c80f3052a854d42af48b638ec23cfb55b2b2`.
+- BuildReport `packedAssets` contains `Assets/TinyFactory/Resources/FactoryWorldMaterial.mat` (1,672 B, GUID `585741ec9641c4e719ed509661b717c0`) and `Packages/com.unity.render-pipelines.universal/Shaders/Lit.shader` (205,600 B, GUID `933532a4fcc9baf4fa0491de14d08ed7`). This proves those assets were packed, not that rendering was confirmed on hardware.
+- Build warnings: `No RuntimePipelineConfig asset found ... Pipeline will be disabled in Player builds` and obsolete `Object.FindObjectOfType<T>()` warning in `FactoryPresentation.cs`. The RuntimePipelineConfig warning was not attributed to URP or changed without proof. Editor Play smoke confirmed all 7 existing factory world renderers use the shared material; SampleScene validation returned 0 issues, Console errors 0. APK is pending user retest on Realme RMX3834 / Android 15.
+
+## M03-R01 — Android patch 0.3.1 (2026-10-05)
+
+- Unity MCP job `build-7c99c9d2e6`: **success**, Android, duration `152.400852 s`, 0 errors / 2 warnings, reported uncompressed size `715.73 MB`. Unity `6000.3.9f1`, version `0.3.1`, Android bundle version code `7`, bundle ID `com.tinyfactory.prototype`; enabled scene — `Assets/Scenes/SampleScene.unity`.
+- Артефакт [`TinyFactory-v0.3.1-code7.apk`](../Builds/Android/TinyFactory-v0.3.1-code7.apk): `38,844,621` bytes; SHA-256 `bb864cb3837e43183e06872948ef012b4a1000fc2f1d638ee74a0a9a6ca97eef`.
+- Build warnings: `No RuntimePipelineConfig asset found ... Pipeline will be disabled in Player builds`; obsolete `Object.FindObjectOfType<T>()` warning in `FactoryPresentation.cs`. Build succeeded with 0 errors. Post-build Unity MCP readback confirms `0.3.1/code7`, Android, Play Mode off, `SampleScene` validation 0 issues / 0 missing scripts / 0 broken prefabs, and four production roots. Console error/warning query found the same two Unity warnings plus MCP bridge diagnostics.
+- Presentation/Editor evidence and synthetic click/lifecycle limits are in [M031_IMPLEMENTATION](M031_IMPLEMENTATION.md). The APK was not installed or run on an Android device; D12 remains pending manual device verification.
+
 ## M03 — Android playable build v0.3.0 (2026-10-05)
 
 - Принятый Android Unity MCP build job `build-b2f084444f`: **success**, duration `51.770151 s`, 0 errors / 1 warning, reported uncompressed size `702.82 MB`. Unity `6000.3.9f1`; version `0.3.0`, Android bundle version code `6`, bundle ID `com.tinyfactory.prototype`, development build выключен; единственная enabled scene — `Assets/Scenes/SampleScene.unity`.

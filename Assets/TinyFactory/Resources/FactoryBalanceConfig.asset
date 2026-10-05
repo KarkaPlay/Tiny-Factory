@@ -13,11 +13,40 @@ MonoBehaviour:
   m_Name: FactoryBalanceConfig
   m_EditorClassIdentifier: Assembly-CSharp::TinyFactory.FactoryBalanceConfig
   bufferCapacity: 8
-  manualBatch: 1
-  automationIntervalSeconds: 12
-  dryerSeconds: 3
-  dryerSecondsAtSpeedLevelOne: 2
-  packagerSeconds: 2
-  speedLevelOneCost: 36
+  baseManualBatch: 1
+  baseAutomationIntervalSeconds: 12
+  upgradeCosts:
+  - 36
+  - 54
+  - 72
+  dryerSecondsBySpeedLevel:
+  - 3
+  - 2
+  - 2
+  - 1
+  rollerSecondsBySpeedLevel:
+  - 2
+  - 1
+  - 1
+  - 1
+  finalSecondsBySpeedLevel:
+  - 2
+  - 2
+  - 1
+  - 1
+  manualBatchByProductivityLevel:
+  - 1
+  - 2
+  - 3
+  - 4
+  automationIntervalByLevel:
+  - 12
+  - 10
+  - 8
+  - 6
+  rollerUnlockSales: 15
+  sealerUnlockSales: 40
   saleValue: 4
+  rollerTierSaleValue: 5
+  sealerTierSaleValue: 6
   valueCap: 1000000000000

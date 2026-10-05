@@ -18,19 +18,17 @@ internal static class M03Validation
 private static void SyntheticHarvestClick()
         {
             FactoryRuntime runtime = GameObject.Find("Tiny Factory Runtime")?.GetComponent<FactoryRuntime>();
-            FactoryPresentation view = GameObject.Find("Tiny Factory Runtime")?.GetComponent<FactoryPresentation>();
-            FieldInfo field = typeof(FactoryPresentation).GetField("harvestButton", BindingFlags.Instance | BindingFlags.NonPublic);
-            Button button = view != null && field != null ? field.GetValue(view) as Button : null;
+            Button button = GameObject.Find("Harvest Button")?.GetComponent<Button>();
             if (runtime == null || button == null || EventSystem.current == null)
             {
-                Debug.LogError("Synthetic UI click unavailable: Play Mode HUD/EventSystem is missing.");
+                Debug.LogError("Synthetic UI click unavailable: authored HUD button/EventSystem is missing.");
                 return;
             }
             InvokeLifecycle(runtime, "OnApplicationFocus", true);
             var pointer = new PointerEventData(EventSystem.current) { button = PointerEventData.InputButton.Left };
             ExecuteEvents.Execute(button.gameObject, pointer, ExecuteEvents.pointerClickHandler);
             Debug.Log($"M03 SYNTHETIC UI POINTER CLICK: foreground={runtime.IsForeground}, source buffer={runtime.SourceBuffer}, expected 1.");
-            Require(runtime.SourceBuffer == 1, "synthetic harvest button click is accepted");
+            Require(runtime.SourceBuffer == 1, "persistent synthetic harvest button click is accepted");
         }
 
         [MenuItem("Tiny Factory/Run M03 Deterministic Validation")]
@@ -118,10 +116,10 @@ private static void CleanupTestObjects()
             FactoryBalanceConfig noAuto = UnityEngine.Object.Instantiate(Resources.Load<FactoryBalanceConfig>("FactoryBalanceConfig"));
             TestAssets.Add(noAuto);
 
-            noAuto.automationIntervalSeconds = 100000;
-            noAuto.packagerSeconds = 20;
+            noAuto.automationIntervalByLevel = new[] { 100000, 100000, 100000, 100000 };
+            noAuto.finalSecondsBySpeedLevel = new[] { 20, 20, 20, 20 };
             FactoryRuntime runtime = NewRuntime(noAuto, out GameObject host);
-            SetField(runtime, "secondsUntilAuto", noAuto.automationIntervalSeconds);
+            SetField(runtime, "secondsUntilAuto", noAuto.AutomationInterval(0));
             int accepted = 0;
             bool sawBlockedWip = false;
             for (int i = 0; i < 500; i++)
@@ -130,11 +128,11 @@ private static void CleanupTestObjects()
                 runtime.Tick();
                 if (runtime.DryerHasWip && runtime.DryerRemaining == 0 && runtime.PackagerInput == runtime.Capacity)
                     sawBlockedWip = true;
-                Require(runtime.TotalInFlight <= 18, "maximum in-flight stays within 18 while buffers fill");
+                Require(runtime.TotalInFlight <= 27, "maximum in-flight stays within 27 while buffers fill");
             }
             Require(sawBlockedWip, "completed dryer WIP waits when downstream input buffer is full");
             Require(!runtime.RequestHarvest(), "full source refuses manual tap");
-            Require(runtime.RejectedHarvests > 0 && runtime.TotalInFlight <= 18, "full-buffer refusal is visible and bounded");
+            Require(runtime.RejectedHarvests > 0 && runtime.TotalInFlight <= 27, "full-buffer refusal is visible and bounded");
             runtime.SetForeground(false);
             int frozenTicks = runtime.Ticks;
             long frozenSales = runtime.Sold;
@@ -150,7 +148,7 @@ private static void CleanupTestObjects()
             for (int i = 0; i < 1000; i++)
             {
                 runtime.Tick();
-                Require(runtime.TotalInFlight <= 18, "maximum in-flight stays within 18");
+                Require(runtime.TotalInFlight <= 27, "maximum in-flight stays within 27");
             }
             Require(runtime.Sold == accepted, $"accepted items are eventually sold once after backpressure ({accepted} accepted, {runtime.Sold} sold)");
             runtime.SetForeground(false);
@@ -182,13 +180,15 @@ private static void CleanupTestObjects()
 private static FactoryRuntime NewRuntime(FactoryBalanceConfig config, out GameObject host)
         {
             host = new GameObject("M03 Validation Runtime");
+            host.SetActive(false);
             host.hideFlags = HideFlags.DontSave;
             TestHosts.Add(host);
-            FactoryRuntime runtime = host.AddComponent<FactoryRuntime>();
             if (config == null) config = Resources.Load<FactoryBalanceConfig>("FactoryBalanceConfig");
             Require(config != null, "balance config asset is loadable");
+            FactoryRuntime runtime = host.AddComponent<FactoryRuntime>();
             SetField(runtime, "config", config);
-            SetField(runtime, "secondsUntilAuto", config.automationIntervalSeconds);
+            SetField(runtime, "secondsUntilAuto", config.AutomationInterval(0));
+            host.SetActive(true);
             return runtime;
         }
 
